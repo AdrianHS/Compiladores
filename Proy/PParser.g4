@@ -89,7 +89,7 @@ elementAccess
     : (PCIZQ expression PCDER)*                                 #elementAccesss
     ;
 functionCallExpression
-    : IDENTIFIER PIZQ expressionList PDER                       #functionCallStatementt
+        : IDENTIFIER PIZQ expressionList PDER                       #functionCallStatementt
     ;
 expressionList
     : expression moreExpressions                                #elementExpressionn
