@@ -23,58 +23,60 @@ public class AContextual extends PParserBaseVisitor {
     }
     @Override
     public Object visitDefStatmm(PParser.DefStatmmContext ctx) {
-        int retorno = (int)visit(ctx.defStatement());
-        return null;
+        visit(ctx.defStatement());
+        return 7;
     }
     @Override
     public Object visitIfStatmm(PParser.IfStatmmContext ctx) {
-        int retorno = (int)visit(ctx.ifStatement());
-        return null;
+        visit(ctx.ifStatement());
+        return 7;
     }
     @Override
     public Object visitRetunStatmm(PParser.RetunStatmmContext ctx) {
         int retorno = (int)visit(ctx.returnStatement());
-        return null;
+        return retorno;
     }
     @Override
     public Object visitPrintStatmm(PParser.PrintStatmmContext ctx) {
-        int retorno = (int)visit(ctx.printStatement());
-        return null;
+        visit(ctx.printStatement());
+        return 7;
     }
     @Override
     public Object visitWhileStatmm(PParser.WhileStatmmContext ctx) {
-        int retorno = (int)visit(ctx.whileStatement());
-        return null;
+        visit(ctx.whileStatement());
+        return 7;
     }
 
     @Override
     public Object visitAssignStatmm(PParser.AssignStatmmContext ctx) {
-        int retorno = (int)visit(ctx.assignStatement());
-
-        return null;
+        visit(ctx.assignStatement());
+        return 7;
     }
 
     @Override
     public Object visitFunctionStatmm(PParser.FunctionStatmmContext ctx) {
         int retorno = (int)visit(ctx.functionCallStatement());
-        return null;
+        return retorno;
     }
 
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
         visit(ctx.argList());
         visit(ctx.sequence());
-        return null;
+        tablaSimbolos.insertar(ctx.IDENTIFIER().getSymbol().getText(),8,ctx);
+        return 7;
+        //8 tipo funcion
     }
 
     @Override
     public Object visitArgListt(PParser.ArgListtContext ctx) {
         visit(ctx.moreArgs());
-        return null;
+        tablaSimbolos.insertar(ctx.IDENTIFIER().getSymbol().getText(),4,ctx);
+        return 7;
     }
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
-        return new Object[0];
+        return 7;//new Object[0];
     }
 
     @Override
@@ -82,34 +84,38 @@ public class AContextual extends PParserBaseVisitor {
         for (int i=0; i <= ctx.IDENTIFIER().size()-1; i++){
             tablaSimbolos.insertar(ctx.IDENTIFIER(i).getSymbol().getText(),4,ctx);
         }
-        return null;
+        return 7;
     }
 
     @Override
     public Object visitIfStatm(PParser.IfStatmContext ctx) {
+        //abrir scope
         visit(ctx.expression());
         visit(ctx.sequence(0));
         visit(ctx.sequence(1));
+        //cierra scope
         return null;
     }
 
     @Override
     public Object visitWhileStatm(PParser.WhileStatmContext ctx) {
+        //abrir scope
         visit(ctx.expression());
         visit(ctx.sequence());
+        //cierra scope
         return null;
     }
 
     @Override
     public Object visitRetunStatm(PParser.RetunStatmContext ctx) {
-        visit(ctx.expression());
-        return null;
+        int retorno = (int)visit(ctx.expression());
+        return retorno;//falta assinar tipo retorno funcion
     }
 
     @Override
     public Object visitPrintStatm(PParser.PrintStatmContext ctx) {
         visit(ctx.expression());
-        return null;
+        return 7;
     }
 
     @Override
@@ -123,21 +129,22 @@ public class AContextual extends PParserBaseVisitor {
             Main.info.mostarErrorConsola("Tipos incompatibles");
             return -1;
         }
-        return tipo;//no se si esta bien
+        return -1;//no se si esta bien
     }
 
     @Override
     public Object visitFunctionStatm(PParser.FunctionStatmContext ctx) {
-        visit(ctx.primitiveExpression());
+        int retorno = (int)visit(ctx.primitiveExpression());
         visit(ctx.expressionList());
-        return null;
+
+        return null;//no
     }
 
     @Override
     public Object visitSequencee(PParser.SequenceeContext ctx) {
         visit(ctx.moreStatement());
         return null;
-    }
+    }//no
 
     @Override
     public Object visitMoreStatementt(PParser.MoreStatementtContext ctx) {
@@ -145,7 +152,7 @@ public class AContextual extends PParserBaseVisitor {
         for (int i=1; i <= ctx.statement().size()-1; i++)
         {
             visit(ctx.statement(i));
-        }
+        }//no
         return null;
     }
 
@@ -171,7 +178,6 @@ public class AContextual extends PParserBaseVisitor {
     public Object visitComparisonn(PParser.ComparisonnContext ctx) {
         int retorno = 7;
         int x = -1;
-        //visit(ctx.comparisonElement());
         for (int i=0; i <= ctx.additionExpression().size()-1; i++)
         {
             if(i == 0){
@@ -379,7 +385,7 @@ public class AContextual extends PParserBaseVisitor {
         visit(ctx.expression());
         visit(ctx.moreExpressions());
 
-        return null;
+        return null;//no
     }
     @Override
     public Object visitElementExpressionVacio(PParser.ElementExpressionVacioContext ctx) {
@@ -392,7 +398,7 @@ public class AContextual extends PParserBaseVisitor {
         {
             visit(ctx.expression(i));
         }
-        return null;
+        return null;//no
     }
 
     @Override
