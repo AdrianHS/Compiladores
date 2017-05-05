@@ -74,7 +74,7 @@ public class AContextual extends PParserBaseVisitor {
     }
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
-        return null;
+        return new Object[0];
     }
 
     @Override
@@ -171,6 +171,7 @@ public class AContextual extends PParserBaseVisitor {
     public Object visitComparisonn(PParser.ComparisonnContext ctx) {
         int retorno = 7;
         int x = -1;
+        //visit(ctx.comparisonElement());
         for (int i=0; i <= ctx.additionExpression().size()-1; i++)
         {
             if(i == 0){
@@ -408,7 +409,7 @@ public class AContextual extends PParserBaseVisitor {
     public Object visitPrimitiveExpressionIndetifier(PParser.PrimitiveExpressionIndetifierContext ctx) {
         TablaSimbolos.Ident simbolo = tablaSimbolos.buscar(ctx.IDENTIFIER().getSymbol().getText());
         if(simbolo == null){
-            Main.info.mostarErrorConsola("No existe esta función");
+            Main.info.mostarErrorConsola("No existe esta función o variable");
             return -1;
         }
         return simbolo.tok.getType();
