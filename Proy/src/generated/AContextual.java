@@ -338,38 +338,6 @@ public class AContextual extends PParserBaseVisitor {
             return -1;
         }
 
-        ////
-
-/*
-        Object result = null;
-        Object mulexp = visit(ctx.multiplicationExpression());
-        Object addFact = visit(ctx.additionFactor());
-
-        if(addFact != null){
-            //Error en la expresion
-            if((int)addFact == -1){
-                return null;
-            }
-            if((int)mulexp != (int)addFact){
-                System.err.println("Error elementos incompatibles " +
-                        " " + Table._SYMBOLIC_NAMES[(int)mulexp] + " [+ , -] " + Table._SYMBOLIC_NAMES[(int)addFact] +
-                        " en " + "'" + ctx.getText() + "'");
-            }
-            else if((int)mulexp != MPGrammarParser.INTEGER && (int) mulexp != MPGrammarParser.STRING && (int)addFact != MPGrammarParser.INTEGER && (int) addFact != MPGrammarParser.STRING){
-                System.err.println("Error tipos de datos invalidos para la suma");
-            }
-            else {
-                result = mulexp;
-            }
-        }
-        else {
-            result = mulexp;
-        }
-
-        return result;
-
-*/
-
     }
 
     @Override
