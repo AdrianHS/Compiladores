@@ -1,16 +1,20 @@
 package generated;
 
 import com.company.Main;
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import sun.security.krb5.KrbException;
 
 /**
  * Created by ADRIAN on 27/4/2017.
  */
 public class AContextual extends PParserBaseVisitor {
-    private TablaSimbolos tablaSimbolos;
+    private TablaSimbolos2 tablaSimbolos;
 
     public AContextual(){
-        tablaSimbolos = new TablaSimbolos();
+        tablaSimbolos = new TablaSimbolos2();
     }
 
     @Override
@@ -19,6 +23,7 @@ public class AContextual extends PParserBaseVisitor {
         for (int i = 1; i <= ctx.statement().size() - 1; i++) {
             visit(ctx.statement(i));
         }
+        tablaSimbolos.ultimoElemento().imprimirScope();
         return null;
     }
     @Override
@@ -55,54 +60,135 @@ public class AContextual extends PParserBaseVisitor {
 
     @Override
     public Object visitFunctionStatmm(PParser.FunctionStatmmContext ctx) {
-        int retorno = (int)visit(ctx.functionCallStatement());
-        return retorno;
+        visit(ctx.functionCallStatement());
+        return 7;
+    }
+
+    //Para encontrar los tipos de los parametros de los Def
+    private int [] getTipos(Object [] parametros){
+        int [] tipos = new int [parametros.length];
+
+        //Se buscan los parametros en el scope de la funcion, en el momento en que se llama este metodo solo se
+        //encuentran los parametros en la tabla de este scope
+        for(int i = 0; i < parametros.length; i++){
+            Scope.Datos id = tablaSimbolos.ultimoElemento().buscarDato(parametros[i].toString());
+            tipos[i] = id.getTipo();
+        }
+        return tipos;
     }
 
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
-        visit(ctx.argList());
-        visit(ctx.sequence());
-        tablaSimbolos.insertar(ctx.IDENTIFIER().getSymbol().getText(),8,ctx);
-        return 7;
-        //8 tipo funcion
+        tablaSimbolos.abrirScope("DefStatm: " + ctx.IDENTIFIER().getText());
+        Object [] parametros = (Object[])visit(ctx.argList());
+        int [] tipos = getTipos(parametros);
+        Object sec = visit(ctx.sequence());
+
+        int tipo = (int)sec;
+
+        tablaSimbolos.ultimoElemento().imprimirScope();
+
+        tablaSimbolos.cerrarScope();
+
+        //Se agrega la funcion al scope actual
+        tablaSimbolos.ultimoElemento().insertarF(ctx.IDENTIFIER().getSymbol(), ctx, parametros, tipos, tipo);
+
+        return null;
     }
 
     @Override
     public Object visitArgListt(PParser.ArgListtContext ctx) {
-        visit(ctx.moreArgs());
-        tablaSimbolos.insertar(ctx.IDENTIFIER().getSymbol().getText(),4,ctx);
-        return 7;
+
+        Scope scopeActual = tablaSimbolos.ultimoElemento();
+
+        Scope.Datos d = tablaSimbolos.buscar(ctx.IDENTIFIER().getText());
+
+        //ToDo: verificar esto ↓
+        if(d != null){
+            ParserRuleContext ctx2 = d.getDecl();
+            scopeActual.insertar(new CommonToken(d.getTipo(), d.getNombre()), ctx);
+        }
+        else {
+            Main.info.mostarErrorConsola("Parametros sin tipo\n");
+            System.err.println("Parametros sin tipo");
+            return null;
+        }
+        Object [] parametros = (Object[]) visit(ctx.moreArgs());
+        parametros[0] = ctx.IDENTIFIER().getText();
+        return parametros;
     }
+
+
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
         return 7;//new Object[0];
     }
 
+
+
     @Override
     public Object visitMoreArgss(PParser.MoreArgssContext ctx) {
-        for (int i=0; i <= ctx.IDENTIFIER().size()-1; i++){
-            tablaSimbolos.insertar(ctx.IDENTIFIER(i).getSymbol().getText(),4,ctx);
+        Scope scopeActual = tablaSimbolos.ultimoElemento();
+        Object [] params = new Object[ctx.IDENTIFIER().size() + 1];
+        int i = 1;
+
+
+        for(TerminalNode node : ctx.IDENTIFIER()){
+            Scope.Datos d = tablaSimbolos.buscar(node.getText());
+            if(d != null){
+                String nombre = d.getNombre();
+                int tipo = d.getTipo();
+                ParserRuleContext cntx = d.getDecl();
+                scopeActual.insertar(new CommonToken(tipo, nombre), ctx);
+            }
+            else {
+                Main.info.mostarErrorConsola("Parametros sin tipo\n");
+                System.err.println("Parametros sin tipo.");
+                return null;
+            }
+            params[i] = node.getText();
+            i++;
         }
-        return 7;
+
+        return params;
+        //return 7;
     }
 
     @Override
     public Object visitIfStatm(PParser.IfStatmContext ctx) {
         //abrir scope
-        visit(ctx.expression());
+        tablaSimbolos.abrirScope("IfStatm: ");
+        Object cond = visit(ctx.expression());
+        if(cond == null){
+            Main.info.mostarErrorConsola("Condicion invalida\n");
+            System.err.println("Condición invalida.");
+        }
+
         visit(ctx.sequence(0));
         visit(ctx.sequence(1));
+
+        tablaSimbolos.ultimoElemento().imprimirScope();
+
         //cierra scope
+        tablaSimbolos.cerrarScope();
+
+
         return null;
     }
 
     @Override
     public Object visitWhileStatm(PParser.WhileStatmContext ctx) {
         //abrir scope
+        tablaSimbolos.abrirScope("WhileStatm: ");
+
         visit(ctx.expression());
         visit(ctx.sequence());
         //cierra scope
+
+        tablaSimbolos.ultimoElemento().imprimirScope();
+        tablaSimbolos.cerrarScope();
+
+
         return null;
     }
 
@@ -112,6 +198,7 @@ public class AContextual extends PParserBaseVisitor {
         return retorno;//falta assinar tipo retorno funcion
     }
 
+    //Todo: revisar
     @Override
     public Object visitPrintStatm(PParser.PrintStatmContext ctx) {
         visit(ctx.expression());
@@ -120,24 +207,30 @@ public class AContextual extends PParserBaseVisitor {
 
     @Override
     public Object visitAssignStatm(PParser.AssignStatmContext ctx) {
-        int tipo = (int)visit(ctx.expression());
-        TablaSimbolos.Ident simbolo = tablaSimbolos.buscar(ctx.IDENTIFIER().getSymbol().getText());
-        if(simbolo == null){
-            tablaSimbolos.insertar(ctx.IDENTIFIER().getSymbol().getText(),tipo,ctx);
+        Object tipo = visit(ctx.expression());
+        if(tipo != null) {
+            String id = ctx.IDENTIFIER().getText();
+            Scope.Datos identificador = tablaSimbolos.ultimoElemento().buscarDato(id);
+            if (identificador == null) {
+                tablaSimbolos.ultimoElemento().insertar(new CommonToken((int)tipo, id), ctx);
+            }
+            else {
+                if (identificador.getTipo() != (int)tipo) {
+                    Main.info.mostarErrorConsola("Tipos incompatibles\n");
+                    System.err.println("Tipos incompatibles");
+                }
+            }
         }
-        else if (simbolo.tok.getType() != tipo){
-            Main.info.mostarErrorConsola("Tipos incompatibles");
-            return -1;
-        }
-        return -1;//no se si esta bien
+        return null;
     }
 
     @Override
     public Object visitFunctionStatm(PParser.FunctionStatmContext ctx) {
-        int retorno = (int)visit(ctx.primitiveExpression());
+        //int retorno = (int)visit(ctx.primitiveExpression());
+        visit(ctx.primitiveExpression());
         visit(ctx.expressionList());
 
-        return null;//no
+        return null;
     }
 
     @Override
@@ -146,18 +239,44 @@ public class AContextual extends PParserBaseVisitor {
         return null;
     }//no
 
+
+    //Todo revisar
     @Override
     public Object visitMoreStatementt(PParser.MoreStatementtContext ctx) {
         visit(ctx.statement(0));
         for (int i=1; i <= ctx.statement().size()-1; i++)
         {
             visit(ctx.statement(i));
-        }//no
-        return null;
+        }
+        return null;//retornar null?
     }
+
+
 
     @Override
     public Object visitExpressionn(PParser.ExpressionnContext ctx) {
+        Object retorno = null;
+        Object expr = visit(ctx.additionExpression());
+        Object comp = visit(ctx.comparison());
+        if(comp != null){
+            if((int)comp == -1){ //-1 = Error
+                return null;
+            }
+            if((int)comp != PParser.INTEGER && (int)comp != PParser.CHAR && (int)expr != PParser.INTEGER && (int)expr != PParser.CHAR){
+                System.err.println("Tipos incompatibles");
+                Main.info.mostarErrorConsola("Tipos incompatibles\n");
+            }
+            else if((int)comp != (int)expr){
+                System.err.println("Tipos incompatibles");
+                Main.info.mostarErrorConsola("Tipos incompatibles\n");
+            }
+        }
+        else {
+            retorno = expr;
+        }
+        return retorno;
+
+        /*
         int retorno = (int)visit(ctx.additionExpression());
         int ret = (int)visit(ctx.comparison());
         if(ret != 7){
@@ -172,6 +291,8 @@ public class AContextual extends PParserBaseVisitor {
             }
         }
         return retorno;
+
+        */
     }
 
     @Override
@@ -188,7 +309,8 @@ public class AContextual extends PParserBaseVisitor {
             }
             retorno = (int)visit(ctx.additionExpression(i));
             if(retorno != 1 && retorno != 3){
-                Main.info.mostarErrorConsola("Tipos incompatibles");
+                Main.info.mostarErrorConsola("Tipos incompatibles\n");
+
                 return -1;
             }
         }
@@ -206,7 +328,7 @@ public class AContextual extends PParserBaseVisitor {
             if(retorno == 1){
                 return 1;
             }
-            Main.info.mostarErrorConsola("Se esperaba un entero");
+            Main.info.mostarErrorConsola("Se esperaba un entero\n");
             return -1;
         }
         else if(ret == 7){
@@ -215,6 +337,39 @@ public class AContextual extends PParserBaseVisitor {
         else {
             return -1;
         }
+
+        ////
+
+/*
+        Object result = null;
+        Object mulexp = visit(ctx.multiplicationExpression());
+        Object addFact = visit(ctx.additionFactor());
+
+        if(addFact != null){
+            //Error en la expresion
+            if((int)addFact == -1){
+                return null;
+            }
+            if((int)mulexp != (int)addFact){
+                System.err.println("Error elementos incompatibles " +
+                        " " + Table._SYMBOLIC_NAMES[(int)mulexp] + " [+ , -] " + Table._SYMBOLIC_NAMES[(int)addFact] +
+                        " en " + "'" + ctx.getText() + "'");
+            }
+            else if((int)mulexp != MPGrammarParser.INTEGER && (int) mulexp != MPGrammarParser.STRING && (int)addFact != MPGrammarParser.INTEGER && (int) addFact != MPGrammarParser.STRING){
+                System.err.println("Error tipos de datos invalidos para la suma");
+            }
+            else {
+                result = mulexp;
+            }
+        }
+        else {
+            result = mulexp;
+        }
+
+        return result;
+
+*/
+
     }
 
     @Override
@@ -278,7 +433,7 @@ public class AContextual extends PParserBaseVisitor {
                 }
                 int ret = (int) visit(ctx.multiplicationExpression(i));
                 if (ret != x) {
-                    Main.info.mostarErrorConsola("Tipos incompatibles");
+                    Main.info.mostarErrorConsola("Tipos incompatibles\n");
                     return -1;
                 }
             }
@@ -298,7 +453,7 @@ public class AContextual extends PParserBaseVisitor {
             if(retorno == 1){
                 return 1;
             }
-            Main.info.mostarErrorConsola("Se esperaba un entero");
+            Main.info.mostarErrorConsola("Se esperaba un entero\n");
             return -1;
         }
         else if(ret == 7){
@@ -315,7 +470,7 @@ public class AContextual extends PParserBaseVisitor {
             {
                 int ret = (int)visit(ctx.elementExpression(i));
                 if(ret != 1){
-                    Main.info.mostarErrorConsola("Se esperaba un entero");
+                    Main.info.mostarErrorConsola("Se esperaba un entero\n");
                     return -1;
                 }
             }
@@ -330,7 +485,7 @@ public class AContextual extends PParserBaseVisitor {
         int ret = (int)visit(ctx.elementAccess());
 
         if (retorno == -1){
-            return -1;
+            return -1; //error
         }
         else if(ret != 7){
             if(retorno == 5){
@@ -339,19 +494,19 @@ public class AContextual extends PParserBaseVisitor {
             return -1;
         }
         else if(retorno == 1){
-            return 1;
+            return 1;  //int
         }
         else if(retorno == 2){
-            return 2;
+            return 2; //string
         }
         else if(retorno == 3){
-            return 3;
+            return 3; //char
         }
         else if(retorno == 5){
-            return 5;
+            return 5; //lista
         }
         else {
-            return 4;
+            return 4; //indefinido
         }
     }
 
@@ -373,12 +528,7 @@ public class AContextual extends PParserBaseVisitor {
     @Override
     public Object visitFunctionCallStatementt(PParser.FunctionCallStatementtContext ctx) {
         visit(ctx.expressionList());
-        TablaSimbolos.Ident simbolo = tablaSimbolos.buscar(ctx.IDENTIFIER().getSymbol().getText());
-        if(simbolo == null){
-            Main.info.mostarErrorConsola("No existe esta función");
-            return -1;
-        }
-        return simbolo.tok.getType();
+        return null;
     }
     @Override
     public Object visitElementExpressionn(PParser.ElementExpressionnContext ctx) {
@@ -413,12 +563,17 @@ public class AContextual extends PParserBaseVisitor {
 
     @Override
     public Object visitPrimitiveExpressionIndetifier(PParser.PrimitiveExpressionIndetifierContext ctx) {
-        TablaSimbolos.Ident simbolo = tablaSimbolos.buscar(ctx.IDENTIFIER().getSymbol().getText());
-        if(simbolo == null){
-            Main.info.mostarErrorConsola("No existe esta función o variable");
-            return -1;
+        Token token = null;
+        Scope.Datos d = tablaSimbolos.buscar(ctx.IDENTIFIER().getText());
+        if(d == null){
+            System.err.println("Valor no declarado");
+            Main.info.mostarErrorConsola("Valor no declarado\n");
         }
-        return simbolo.tok.getType();
+        else {
+            token = new CommonToken(d.getTipo(), ctx.IDENTIFIER().getText());
+        }
+
+        return token;
     }
 
     @Override
@@ -453,7 +608,7 @@ public class AContextual extends PParserBaseVisitor {
             return 1;
         }
         else {
-            Main.info.mostarErrorConsola("No se aceptan CHAR ni ENTEROS");
+            Main.info.mostarErrorConsola("No se aceptan CHAR ni ENTEROS\n");
             return -1;
         }
     }

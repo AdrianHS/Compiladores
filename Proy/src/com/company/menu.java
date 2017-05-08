@@ -2,6 +2,7 @@ package com.company;
 
 import com.Exceptions.Errores;
 import com.Exceptions.ErroresEspañol;
+import generated.AContextual;
 import generated.PParser;
 import generated.PScanner;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -498,6 +499,10 @@ public class menu extends JFrame {
 			parser.addErrorListener(new Errores());
 			parser.setErrorHandler(new ErroresEspañol());
 			raiz = parser.program();
+
+			AContextual analisis = new AContextual();
+			analisis.visit(raiz);
+
 		}
 		catch(Exception e){
 			System.out.println("No hay archivo");
