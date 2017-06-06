@@ -40,31 +40,31 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitRetunStatmm(PParser.RetunStatmmContext ctx) {
-
-        return super.visitRetunStatmm(ctx);
+        //Algo
+        return null;
     }
 
     @Override
     public Object visitPrintStatmm(PParser.PrintStatmmContext ctx) {
-
+        //algo
         return null;
     }
 
     @Override
     public Object visitWhileStatmm(PParser.WhileStatmmContext ctx) {
-        visit(ctx.whileStatement());
+        visit(ctx.whileStatement());//no se
         return null;
     }
 
     @Override
     public Object visitAssignStatmm(PParser.AssignStatmmContext ctx) {
-        visit(ctx.assignStatement());
+        visit(ctx.assignStatement());//algo
         return null;
     }
 
     @Override
     public Object visitFunctionStatmm(PParser.FunctionStatmmContext ctx) {
-        return null;
+        return null;//algo
     }
 
     @Override
@@ -84,13 +84,13 @@ public class generadorCodigo extends PParserBaseVisitor {
 
         visit(ctx.moreArgs());
 
-        return null;// retorno malo
+        return null;
     }
 
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
 
-        return super.visitArgVacio(ctx);
+        return null;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class generadorCodigo extends PParserBaseVisitor {
         listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE ", linea++));
         int y = listaIntruciones.size();
         visit(ctx.sequence(0));
-        listaIntruciones.get(x).setCodigo("JUMP_ABSOLUTE " + Integer.toString(linea));
+        listaIntruciones.get(y).setCodigo("JUMP_ABSOLUTE " + Integer.toString(linea));
         return null;
     }
 
@@ -196,10 +196,10 @@ public class generadorCodigo extends PParserBaseVisitor {
             //deben visitarse todas las additionExpression
             visit(ctx.additionExpression(0));
 
-            //debe elegiste cual de los operadores viene para saber cual instrucción generar
+        //debe elegiste cual de los operadores viene para saber cual instrucción generar
 
-            listaIntruciones.add(new Instrucion("COMPARE_OP " + "<", linea++));
-        }
+        listaIntruciones.add(new Instrucion("COMPARE_OP " + "<", linea++));
+    }
         return null;//Revisar
     }
 
@@ -308,27 +308,27 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitElementAccesss(PParser.ElementAccesssContext ctx) {
-        return super.visitElementAccesss(ctx);
+        return null;
     }
 
     @Override
     public Object visitFunctionCallStatementt(PParser.FunctionCallStatementtContext ctx) {
-        return super.visitFunctionCallStatementt(ctx);
+        return null;
     }
 
     @Override
     public Object visitElementExpressionn(PParser.ElementExpressionnContext ctx) {
-        return super.visitElementExpressionn(ctx);
+        return null;
     }
 
     @Override
     public Object visitElementExpressionVacio(PParser.ElementExpressionVacioContext ctx) {
-        return super.visitElementExpressionVacio(ctx);
+        return null;
     }
 
     @Override
     public Object visitMoreExpressionss(PParser.MoreExpressionssContext ctx) {
-        return super.visitMoreExpressionss(ctx);
+        return null;
     }
 
     @Override
