@@ -21,10 +21,9 @@ public class Instrucion {
         this.esIf = false;
     }
 
-    //Constructor para las funciones
+    //Constructor para las etiquetas de las funciones
     public Instrucion(String codigo, String[]parametros) {
         this.codigo = codigo;
-        this.linea = linea;
         this.parametros = parametros;
         this.esFuncion=true;
     }
@@ -65,7 +64,7 @@ public class Instrucion {
         this.saltoLinea = saltoLinea;
     }
 
-    public boolean isEsFuncion() {
+    public boolean getEsFuncion() {
         return esFuncion;
     }
 
@@ -81,7 +80,22 @@ public class Instrucion {
         this.parametros = parametros;
     }
 
+    //Imprimir para las lineas de codigo
     public void imprimir(){
         System.out.println(linea + " " + codigo);
+    }
+
+    //Imprimir para las etiquetas de las funciones
+    public void imprimir2(){
+        System.out.print("\n"+codigo+ "(");
+        for(int i=0;i < parametros.length;i++){
+
+            System.out.print(parametros[i]);
+            if(i+1<parametros.length){
+                System.out.print(", ");
+            }
+        }
+
+        System.out.print("):\n");
     }
 }
