@@ -6,17 +6,27 @@ package generated;
 public class Instrucion {
     String codigo;
     int linea;
-    String parametro;
 
+    boolean esIf;
+    int saltoLinea;
+
+    boolean esFuncion;
+    String[] parametros;
+
+
+    //Constructor para las lineas de codigo
     public Instrucion(String codigo, int linea) {
         this.codigo = codigo;
         this.linea = linea;
+        this.esIf = false;
     }
 
-    public Instrucion(String codigo, int linea, String parametro) {
+    //Constructor para las funciones
+    public Instrucion(String codigo, String[]parametros) {
         this.codigo = codigo;
         this.linea = linea;
-        this.parametro = parametro;
+        this.parametros = parametros;
+        this.esFuncion=true;
     }
 
     public Instrucion() {
@@ -39,14 +49,39 @@ public class Instrucion {
         this.linea = linea;
     }
 
-    public String getParametro() {
-        return parametro;
+    public boolean isEsIf() {
+        return esIf;
     }
 
-    public void setParametro(String parametro) {
-        this.parametro = parametro;
+    public void setEsIf(boolean esIf) {
+        this.esIf = esIf;
     }
+
+    public int getSaltoLinea() {
+        return saltoLinea;
+    }
+
+    public void setSaltoLinea(int saltoLinea) {
+        this.saltoLinea = saltoLinea;
+    }
+
+    public boolean isEsFuncion() {
+        return esFuncion;
+    }
+
+    public void setEsFuncion(boolean esFuncion) {
+        this.esFuncion = esFuncion;
+    }
+
+    public String[] getParametros() {
+        return parametros;
+    }
+
+    public void setParametros(String[] parametros) {
+        this.parametros = parametros;
+    }
+
     public void imprimir(){
-        System.out.println(linea + " " + codigo + " ");
+        System.out.println(linea + " " + codigo);
     }
 }

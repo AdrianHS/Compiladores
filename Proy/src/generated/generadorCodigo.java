@@ -40,13 +40,13 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitRetunStatmm(PParser.RetunStatmmContext ctx) {
-        //Algo
+        visit(ctx.returnStatement());
         return null;
     }
 
     @Override
     public Object visitPrintStatmm(PParser.PrintStatmmContext ctx) {
-        //algo
+        visit(ctx.printStatement());
         return null;
     }
 
@@ -70,6 +70,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
         //falta metodo
+
         visit(ctx.argList());
         visit(ctx.sequence());
         return null;
@@ -89,7 +90,6 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
-
         return null;
     }
 
@@ -142,9 +142,9 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitPrintStatm(PParser.PrintStatmContext ctx) {
+        listaIntruciones.add(new Instrucion("LOAD_GLOBAL " + ctx.PRINT().getSymbol().getText() , linea++));
         visit(ctx.expression());
-        listaIntruciones.add(new Instrucion("LOAD_GLOBAL ", linea++));
-        listaIntruciones.add(new Instrucion("FUNCTION_CALL ", linea++));
+        listaIntruciones.add(new Instrucion("CALL_FUNCTION ", linea++));
         return null;
     }
 
@@ -152,7 +152,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     public Object visitAssignStatm(PParser.AssignStatmContext ctx) {
 
         visit(ctx.expression());
-        String info = (String)visit(ctx.IDENTIFIER());
+        String info = ctx.IDENTIFIER().getSymbol().getText();
         listaIntruciones.add(new Instrucion("STORE_FAST " + info, linea++));
         return null;
     }
@@ -318,6 +318,9 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitElementExpressionn(PParser.ElementExpressionnContext ctx) {
+        visit(ctx.expression());
+        int info = (int)visit(ctx.moreExpressions());
+        listaIntruciones.add(new Instrucion("BUILD_LIST " + String.valueOf(info+1) , linea++));
         return null;
     }
 
@@ -327,8 +330,12 @@ public class generadorCodigo extends PParserBaseVisitor {
     }
 
     @Override
-    public Object visitMoreExpressionss(PParser.MoreExpressionssContext ctx) {
-        return null;
+    public Object visitMoreExpressionss(PParser.MoreExpressionssContext ctx)
+    {
+        for (int i = 0; i < ctx.expression().size(); i++) {
+            visit(ctx.expression(i));
+        }
+        return ctx.expression().size();
     }
 
     @Override
@@ -367,7 +374,7 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitPrimitiveExpressionListEspresion(PParser.PrimitiveExpressionListEspresionContext ctx) {
-
+        visit(ctx.listExpression());
         return null;
     }
 
@@ -383,7 +390,7 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitListExpressionn(PParser.ListExpressionnContext ctx) {
-
+        visit(ctx.expressionList());
         return null;
     }
 }
