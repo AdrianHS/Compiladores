@@ -69,14 +69,12 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitFunctionStatmm(PParser.FunctionStatmmContext ctx) {
-        //visit(ctx.functionCallStatement());
-        return null;//algo
+        visit(ctx.functionCallStatement());
+        return null;
     }
 
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
-        //falta metodo
-
         String[] args= (String[])visit(ctx.argList());
 
         listaIntruciones.add(new Instrucion(ctx.IDENTIFIER().getSymbol().getText(),args));
@@ -164,10 +162,15 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitFunctionStatm(PParser.FunctionStatmContext ctx) {
-
-        //falta
         visit(ctx.primitiveExpression());
+
+        int y = listaIntruciones.size()-1;
+        String cod= listaIntruciones.get(y).getCodigo();
+        String[] c = cod.split("LOAD_FAST");
+        listaIntruciones.get(y).setCodigo("LOAD_GLOBAL" + c[1]);
         visit(ctx.expressionList());
+
+        listaIntruciones.add(new Instrucion("CALL_FUNCTION " + numeroArgumentos,linea++));
         return null;
     }
 
@@ -336,6 +339,7 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitElementExpressionVacio(PParser.ElementExpressionVacioContext ctx) {
+        numeroArgumentos=0;
         return null;
     }
 
