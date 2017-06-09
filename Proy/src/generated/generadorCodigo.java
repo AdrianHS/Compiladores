@@ -9,9 +9,7 @@ import java.util.List;
 public class generadorCodigo extends PParserBaseVisitor {
     List<Instrucion> listaIntruciones = new ArrayList<>();
     private int linea =0;
-    private int contador = 0;
-
-    private int tamListas=0;
+    private int numeroArgumentos =0;
 
     @Override
     public Object visitProgrm(PParser.ProgrmContext ctx) {
@@ -35,17 +33,13 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitDefStatmm(PParser.DefStatmmContext ctx) {
-
         visit(ctx.defStatement());
-
         return null;
     }
 
     @Override
     public Object visitIfStatmm(PParser.IfStatmmContext ctx) {
-
         visit(ctx.ifStatement());
-
         return null;
     }
 
@@ -63,13 +57,13 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitWhileStatmm(PParser.WhileStatmmContext ctx) {
-        visit(ctx.whileStatement());//no se
+        visit(ctx.whileStatement());
         return null;
     }
 
     @Override
     public Object visitAssignStatmm(PParser.AssignStatmmContext ctx) {
-        visit(ctx.assignStatement());//algo
+        visit(ctx.assignStatement());
         return null;
     }
 
@@ -82,9 +76,10 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
         //falta metodo
+
         String[] args= (String[])visit(ctx.argList());
-        listaIntruciones.add(new Instrucion(ctx.DEF().getSymbol().getText()+" "+
-                ctx.IDENTIFIER().getSymbol().getText(),args));
+
+        listaIntruciones.add(new Instrucion(ctx.IDENTIFIER().getSymbol().getText(),args));
 
         visit(ctx.sequence());
         return null;
@@ -94,11 +89,8 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitArgListt(PParser.ArgListtContext ctx) {
 
-
         String[] moreArgs =(String[]) visit(ctx.moreArgs());
-
         String[] args = {ctx.IDENTIFIER().getSymbol().getText()};
-
         return args;
     }
 
@@ -117,27 +109,29 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitIfStatm(PParser.IfStatmContext ctx) {
         visit(ctx.expression());
-
-        listaIntruciones.add(new Instrucion("JUMP_IF_TRUE ", linea++));
-        int x = listaIntruciones.size();
-        visit(ctx.sequence(1));
-        listaIntruciones.get(x).setCodigo("JUMP_IF_TRUE " + Integer.toString(linea));
+        listaIntruciones.add(new Instrucion("JUMP_IF_FAlSE ", linea++));
+        int x = listaIntruciones.size()-1;
+        visit(ctx.sequence(0));
+        listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea+1));
 
         listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE ", linea++));
-        int y = listaIntruciones.size();
-        visit(ctx.sequence(0));
+        int y = listaIntruciones.size()-1;
+        visit(ctx.sequence(1));
         listaIntruciones.get(y).setCodigo("JUMP_ABSOLUTE " + Integer.toString(linea));
         return null;
     }
 
     @Override
     public Object visitWhileStatm(PParser.WhileStatmContext ctx) {
+
+        int saltoWhile = linea;
         visit(ctx.expression());
+
         listaIntruciones.add(new Instrucion("JUMP_IF_FALSE ", linea++));
-        int x = listaIntruciones.size();
+        int x = listaIntruciones.size()-1;
         visit(ctx.sequence());
 
-        listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE ", linea++));
+        listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE " +saltoWhile, linea++));
 
         listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea+1));
 
@@ -155,8 +149,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     public Object visitPrintStatm(PParser.PrintStatmContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_GLOBAL " + ctx.PRINT().getSymbol().getText() , linea++));
         visit(ctx.expression());
-        listaIntruciones.add(new Instrucion("CALL_FUNCTION "+String.valueOf(tamListas+1), linea++));
-        tamListas=0;
+        listaIntruciones.add(new Instrucion("CALL_FUNCTION "+String.valueOf(numeroArgumentos), linea++));
         return null;
     }
 
@@ -203,17 +196,11 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitComparisonn(PParser.ComparisonnContext ctx) {
 
-        //Revisar
-        if (ctx.additionExpression().size()!=0)
-        {
-            //deben visitarse todas las additionExpression
-            visit(ctx.additionExpression(0));
-
-        //debe elegiste cual de los operadores viene para saber cual instrucción generar
-
-        listaIntruciones.add(new Instrucion("COMPARE_OP " + "<", linea++));
-    }
-        return null;//Revisar
+        for (int i = 0; i < ctx.comparisonElement().size() ; i++) {
+            visit(ctx.additionExpression(i));
+            visit(ctx.comparisonElement(i));
+        }
+        return null;
     }
 
     @Override
@@ -252,31 +239,29 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitAdditionExpressionn(PParser.AdditionExpressionnContext ctx) {
         visit(ctx.multiplicationExpression());
-        //visit(ctx.additionFactor());
+        visit(ctx.additionFactor());
 
-        return null;//revisar
+        return null;
     }
 
     @Override
     public Object visitAdditionFactorr(PParser.AdditionFactorrContext ctx) {
-        //deben visitar todos los multiplicationExpression
-
-        visit(ctx.multiplicationExpression(0));
-
-        // genere ADD o SUB dependiendo de cual venga
-
-        return null;//Revisar
+        for (int i = 0; i < ctx.additionElement().size() ; i++) {
+            visit(ctx.multiplicationExpression(i));
+            visit(ctx.additionElement(i));
+        }
+        return null;
     }
 
     @Override
     public Object visitAdditionElementSuma(PParser.AdditionElementSumaContext ctx) {
-        listaIntruciones.add(new Instrucion("BINARY_ADD " + "+", linea++));
+        listaIntruciones.add(new Instrucion("BINARY_ADD ", linea++));
         return null;
     }
 
     @Override
     public Object visitAdditionElementResta(PParser.AdditionElementRestaContext ctx) {
-        listaIntruciones.add(new Instrucion("BINARY_SUBSTRACT " + "-", linea++));
+        listaIntruciones.add(new Instrucion("BINARY_SUBSTRACT ", linea++));
         return null;
     }
 
@@ -291,12 +276,11 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitMultiplicationFactorr(PParser.MultiplicationFactorrContext ctx) {
-        //deben visitar todos los elementExpression
-        if (ctx.elementExpression().size()!=0) {
-            visit(ctx.elementExpression(0));
-            listaIntruciones.add(new Instrucion("BINARY_MULTIPLY", linea++));
+        for (int i = 0; i <ctx.elementExpression().size() ; i++) {
+            visit(ctx.elementExpression(i));
+            visit(ctx.multiplicationElement(i));
         }
-        return null;//revisar
+        return null;
     }
 
     @Override
@@ -314,13 +298,22 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitElementExpressions(PParser.ElementExpressionsContext ctx) {
         visit(ctx.primitiveExpression());
-        //recordar visitar el elementAccess
+        visit(ctx.elementAccess());
+
 
         return null;
     }
 
     @Override
     public Object visitElementAccesss(PParser.ElementAccesssContext ctx) {
+
+        for (int i = 0; i <ctx.expression().size() ; i++) {
+            visit(ctx.expression(i));
+            listaIntruciones.add(new Instrucion("BINARY_SUBSCR",linea++));
+        }
+
+
+
         return null;
     }
 
@@ -328,8 +321,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     public Object visitFunctionCallStatementt(PParser.FunctionCallStatementtContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_GLOBAL " + ctx.IDENTIFIER().getSymbol().getText(),linea++));
         visit(ctx.expressionList());
-        listaIntruciones.add(new Instrucion("CALL_FUNCTION " + String.valueOf(tamListas+1),linea++));
-        tamListas=0;
+        listaIntruciones.add(new Instrucion("CALL_FUNCTION " + String.valueOf(numeroArgumentos),linea++));
 
         return null;
     }
@@ -337,7 +329,8 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitElementExpressionn(PParser.ElementExpressionnContext ctx) {
         visit(ctx.expression());
-        tamListas = (int)visit(ctx.moreExpressions());
+        numeroArgumentos = 1;
+        numeroArgumentos += (int)visit(ctx.moreExpressions());
         return null;
     }
 
@@ -349,16 +342,16 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitMoreExpressionss(PParser.MoreExpressionssContext ctx)
     {
+
         for (int i = 0; i < ctx.expression().size(); i++) {
             visit(ctx.expression(i));
         }
         return ctx.expression().size();
+
     }
 
     @Override
     public Object visitPrimitiveExpressionInt(PParser.PrimitiveExpressionIntContext ctx) {
-        //Generar la instruccion LOAD_CONST
-        //System.out.println("LOAD_CONST " + ctx.INTEGER());
         listaIntruciones.add(new Instrucion("LOAD_CONST " + ctx.INTEGER(), linea++));
 
         return null;
@@ -397,6 +390,9 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitPrimitiveExpressionLENPIZQPDER(PParser.PrimitiveExpressionLENPIZQPDERContext ctx) {
+        listaIntruciones.add(new Instrucion("LOAD_GLOBAL " + ctx.LEN().getSymbol().getText(),linea++));
+        visit(ctx.expression());
+        listaIntruciones.add(new Instrucion("CALL_FUNCTION " + numeroArgumentos,linea++));
         return null;
     }
 
@@ -410,8 +406,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     public Object visitListExpressionn(PParser.ListExpressionnContext ctx) {
 
         visit(ctx.expressionList());
-        listaIntruciones.add(new Instrucion("BUILD_LIST " + String.valueOf(tamListas+1) , linea++));
-        tamListas=0;
+        listaIntruciones.add(new Instrucion("BUILD_LIST " + String.valueOf(numeroArgumentos) , linea++));
 
         return null;
     }
