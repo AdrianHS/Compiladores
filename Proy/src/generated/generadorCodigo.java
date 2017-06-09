@@ -1,25 +1,29 @@
 package generated;
 
+import javax.swing.*;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ADRIAN on 25/5/2017.
  */
+
+
 public class generadorCodigo extends PParserBaseVisitor {
+    //Lista para guardar las instrucciones
     List<Instrucion> listaIntruciones = new ArrayList<>();
+    //Contador para las lineas de codigo
     private int linea =0;
+    //Contador para contar argumentos
     private int numeroArgumentos =0;
 
-    @Override
-    public Object visitProgrm(PParser.ProgrmContext ctx) {
-        visit(ctx.statement(0));
-
-        for (int i=1; i <= ctx.statement().size()-1; i++)
-        {
-            visit(ctx.statement(i));
-        }
-
+    //Imprime en consola el codigo
+    private void imprimirCodigo(){
         for(Instrucion i : listaIntruciones){
             if(i.getEsFuncion()){
                 i.imprimir2();
@@ -28,8 +32,40 @@ public class generadorCodigo extends PParserBaseVisitor {
                 i.imprimir();
             }
         }
-        return null;
     }
+
+    //Metodo para guardar el codigo generado en un archivo .txt
+    private void generarArchivo(){
+        ArrayList<String> code = new ArrayList<String>();
+        for(Instrucion i : listaIntruciones){
+           code.add(i.getByteCode());
+        }
+        try{
+            Path file = Paths.get("ByteCode.txt");
+            Files.write(file, code, Charset.forName("UTF-8"));
+        } catch (IOException ioException) {
+            JOptionPane.showMessageDialog(null,"Error en el archivo","Error",JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    @Override
+    public Object visitProgrm(PParser.ProgrmContext ctx) {
+
+        visit(ctx.statement(0));
+        for (int i=1; i <= ctx.statement().size()-1; i++)
+        {
+            visit(ctx.statement(i));
+        }
+
+        //Al final de la ejecucion: imprimir y generar codigo.
+        imprimirCodigo();
+        generarArchivo();
+
+        return null;
+
+    }
+
 
     @Override
     public Object visitDefStatmm(PParser.DefStatmmContext ctx) {
@@ -75,6 +111,8 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
+
+        //Retorna los argumentos de la funcion declarada.
         String args= (String)visit(ctx.argList());
 
         listaIntruciones.add(new Instrucion(ctx.IDENTIFIER().getSymbol().getText(),args));
@@ -87,25 +125,27 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitArgListt(PParser.ArgListtContext ctx) {
 
+        //Si tiene mas argumentos los regresa en un string
         String  moreArgs =(String) visit(ctx.moreArgs());
+        //Concatena lo que obtuvo en un solo string
         String args = ctx.IDENTIFIER().getSymbol().getText() + moreArgs;
         return args;
     }
 
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
-
+        //Cuando no hay argumentos.
         return "";
     }
 
     @Override
     public Object visitMoreArgss(PParser.MoreArgssContext ctx) {
 
+        //Guarda todos los argumentos en un string, separados por coma.
         String param = new String();
         for (int i = 0; i <ctx.IDENTIFIER().size() ; i++) {
             param+= ", "+ ctx.IDENTIFIER(i).getSymbol().getText();
         }
-
         return param;
     }
 
@@ -113,13 +153,18 @@ public class generadorCodigo extends PParserBaseVisitor {
     public Object visitIfStatm(PParser.IfStatmContext ctx) {
         visit(ctx.expression());
         listaIntruciones.add(new Instrucion("JUMP_IF_FAlSE ", linea++));
+       //Se guarda la posición de la instrucción anterior
         int x = listaIntruciones.size()-1;
+        //Visita lo que hay dentro del if e incrementa la linea
         visit(ctx.sequence(0));
+        //Se sobre escribe la intrucción una vez que ya se sabe cuanto incrementó
         listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea+1));
-
+        //Un Jump para que se salte el else si entró en el if
         listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE ", linea++));
+        //Guardar de nuevo la posición de la insstrucción anterior;
         int y = listaIntruciones.size()-1;
         visit(ctx.sequence(1));
+        //Se reescribe la instrución.
         listaIntruciones.get(y).setCodigo("JUMP_ABSOLUTE " + Integer.toString(linea));
         return null;
     }
@@ -127,15 +172,18 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitWhileStatm(PParser.WhileStatmContext ctx) {
 
+        //Se guarda la posición del inicio del while para poder regresar
         int saltoWhile = linea;
         visit(ctx.expression());
 
         listaIntruciones.add(new Instrucion("JUMP_IF_FALSE ", linea++));
+        //Guardar posision de la linea anterior.
         int x = listaIntruciones.size()-1;
+
         visit(ctx.sequence());
-
+        //Regresar al inicio del while.
         listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE " +saltoWhile, linea++));
-
+        //Se reescribe la instruccion de salto afuera del while.
         listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea+1));
 
         return null;
@@ -276,9 +324,7 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitMultiplicationExpressionn(PParser.MultiplicationExpressionnContext ctx) {
         visit(ctx.elementExpression());
-
         visit(ctx.multiplicationFactor());
-
         return null;
     }
 
@@ -319,9 +365,6 @@ public class generadorCodigo extends PParserBaseVisitor {
             visit(ctx.expression(i));
             listaIntruciones.add(new Instrucion("BINARY_SUBSCR",linea++));
         }
-
-
-
         return null;
     }
 
@@ -337,13 +380,16 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitElementExpressionn(PParser.ElementExpressionnContext ctx) {
         visit(ctx.expression());
+        //si tiene un argumento
         numeroArgumentos = 1;
+        //Si tienen mas de uno, devuelve cuatos argumentos hay
         numeroArgumentos += (int)visit(ctx.moreExpressions());
         return null;
     }
 
     @Override
     public Object visitElementExpressionVacio(PParser.ElementExpressionVacioContext ctx) {
+        //0 si no tienen argumentos
         numeroArgumentos=0;
         return null;
     }
@@ -351,12 +397,10 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitMoreExpressionss(PParser.MoreExpressionssContext ctx)
     {
-
         for (int i = 0; i < ctx.expression().size(); i++) {
             visit(ctx.expression(i));
         }
         return ctx.expression().size();
-
     }
 
     @Override
@@ -413,7 +457,6 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitListExpressionn(PParser.ListExpressionnContext ctx) {
-
         visit(ctx.expressionList());
         listaIntruciones.add(new Instrucion("BUILD_LIST " + String.valueOf(numeroArgumentos) , linea++));
 

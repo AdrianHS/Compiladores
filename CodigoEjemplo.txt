@@ -1,0 +1,25 @@
+def calcularpromedioventas():
+    ventas = [100,200,300,400,500]
+    prom = promedio(ventas)
+    print("El promedio de las ventas es: ")
+    print(prom)
+
+#promedio de elementos
+def promedio(cualquier_arreglo):
+    tam = len(cualquier_arreglo)
+    resultado=0
+    #ciclo para recorrer arreglo
+    cont = 0
+    sumatoria = 0
+    while (cont <= tam-1):
+        sumatoria = sumatoria + cualquier_arreglo[cont]
+        cont = cont + 1
+    if tam > 0:
+        resultado = sumatoria / tam
+        return resultado
+    else:
+        resultado = sumatoria*tam
+        return resultado
+
+def Main():
+    calcularpromedioventas()

@@ -1,16 +1,17 @@
 package generated;
 
+
 /**
  * Created by ADRIAN on 25/5/2017.
  */
 public class Instrucion {
+    //Guarda el codigo de la instruccion
     String codigo;
+    //Guarla le linea de codigo
     int linea;
-
-    boolean esIf;
-    int saltoLinea;
-
+    //Para diferenciar las etiquetas de funciones y las lineas de codigo normales
     boolean esFuncion;
+    //Para guardar los parametros de las etiquetas
     String parametros;
 
 
@@ -18,7 +19,6 @@ public class Instrucion {
     public Instrucion(String codigo, int linea) {
         this.codigo = codigo;
         this.linea = linea;
-        this.esIf = false;
     }
 
     //Constructor para las etiquetas de las funciones
@@ -28,9 +28,6 @@ public class Instrucion {
         this.esFuncion=true;
     }
 
-    public Instrucion() {
-        this.codigo = codigo;
-    }
 
     public String getCodigo() {
         return codigo;
@@ -40,45 +37,11 @@ public class Instrucion {
         this.codigo = codigo;
     }
 
-    public int getLinea() {
-        return linea;
-    }
-
-    public void setLinea(int linea) {
-        this.linea = linea;
-    }
-
-    public boolean isEsIf() {
-        return esIf;
-    }
-
-    public void setEsIf(boolean esIf) {
-        this.esIf = esIf;
-    }
-
-    public int getSaltoLinea() {
-        return saltoLinea;
-    }
-
-    public void setSaltoLinea(int saltoLinea) {
-        this.saltoLinea = saltoLinea;
-    }
 
     public boolean getEsFuncion() {
         return esFuncion;
     }
 
-    public void setEsFuncion(boolean esFuncion) {
-        this.esFuncion = esFuncion;
-    }
-
-    public String getParametros() {
-        return parametros;
-    }
-
-    public void setParametros(String parametros) {
-        this.parametros = parametros;
-    }
 
     //Imprimir para las lineas de codigo
     public void imprimir(){
@@ -89,4 +52,14 @@ public class Instrucion {
     public void imprimir2(){
         System.out.println("\n"+codigo+ "(" + parametros + ")");
     }
+
+
+    //Debuelve la linea de codigo como un string
+    public String getByteCode(){
+        if(!esFuncion){
+            return (linea + " " + codigo);
+        }
+        return (codigo+ "(" + parametros + ")");
+    }
+
 }
