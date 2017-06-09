@@ -75,7 +75,7 @@ public class generadorCodigo extends PParserBaseVisitor {
 
     @Override
     public Object visitDefStatm(PParser.DefStatmContext ctx) {
-        String[] args= (String[])visit(ctx.argList());
+        String args= (String)visit(ctx.argList());
 
         listaIntruciones.add(new Instrucion(ctx.IDENTIFIER().getSymbol().getText(),args));
 
@@ -87,21 +87,26 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitArgListt(PParser.ArgListtContext ctx) {
 
-        String[] moreArgs =(String[]) visit(ctx.moreArgs());
-        String[] args = {ctx.IDENTIFIER().getSymbol().getText()};
+        String  moreArgs =(String) visit(ctx.moreArgs());
+        String args = ctx.IDENTIFIER().getSymbol().getText() + moreArgs;
         return args;
     }
 
     @Override
     public Object visitArgVacio(PParser.ArgVacioContext ctx) {
-        String [] n={};
-        return n;
+
+        return "";
     }
 
     @Override
     public Object visitMoreArgss(PParser.MoreArgssContext ctx) {
 
-        return null;
+        String param = new String();
+        for (int i = 0; i <ctx.IDENTIFIER().size() ; i++) {
+            param+= ", "+ ctx.IDENTIFIER(i).getSymbol().getText();
+        }
+
+        return param;
     }
 
     @Override

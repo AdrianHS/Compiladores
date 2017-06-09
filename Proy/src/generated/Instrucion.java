@@ -11,7 +11,7 @@ public class Instrucion {
     int saltoLinea;
 
     boolean esFuncion;
-    String[] parametros;
+    String parametros;
 
 
     //Constructor para las lineas de codigo
@@ -22,7 +22,7 @@ public class Instrucion {
     }
 
     //Constructor para las etiquetas de las funciones
-    public Instrucion(String codigo, String[]parametros) {
+    public Instrucion(String codigo, String parametros) {
         this.codigo = codigo;
         this.parametros = parametros;
         this.esFuncion=true;
@@ -72,11 +72,11 @@ public class Instrucion {
         this.esFuncion = esFuncion;
     }
 
-    public String[] getParametros() {
+    public String getParametros() {
         return parametros;
     }
 
-    public void setParametros(String[] parametros) {
+    public void setParametros(String parametros) {
         this.parametros = parametros;
     }
 
@@ -87,15 +87,6 @@ public class Instrucion {
 
     //Imprimir para las etiquetas de las funciones
     public void imprimir2(){
-        System.out.print("\n"+codigo+ "(");
-        for(int i=0;i < parametros.length;i++){
-
-            System.out.print(parametros[i]);
-            if(i+1<parametros.length){
-                System.out.print(", ");
-            }
-        }
-
-        System.out.print("):\n");
+        System.out.println("\n"+codigo+ "(" + parametros + ")");
     }
 }
