@@ -184,7 +184,7 @@ public class generadorCodigo extends PParserBaseVisitor {
         //Regresar al inicio del while.
         listaIntruciones.add(new Instrucion("JUMP_ABSOLUTE " +saltoWhile, linea++));
         //Se reescribe la instruccion de salto afuera del while.
-        listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea+1));
+        listaIntruciones.get(x).setCodigo("JUMP_IF_FALSE " + Integer.toString(linea));
 
         return null;
     }
@@ -406,32 +406,35 @@ public class generadorCodigo extends PParserBaseVisitor {
     @Override
     public Object visitPrimitiveExpressionInt(PParser.PrimitiveExpressionIntContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_CONST " + ctx.INTEGER(), linea++));
-
+        numeroArgumentos=1;
         return null;
     }
 
     @Override
     public Object visitPrimitiveExpressionStr(PParser.PrimitiveExpressionStrContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_CONST " + ctx.STRING(), linea++));
+        numeroArgumentos=1;
         return null;
     }
 
     @Override
     public Object visitPrimitiveExpressionIndetifier(PParser.PrimitiveExpressionIndetifierContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_FAST " + ctx.IDENTIFIER(), linea++));
-
+        numeroArgumentos=1;
         return null;
     }
 
     @Override
     public Object visitPrimitiveExpressionChar(PParser.PrimitiveExpressionCharContext ctx) {
         listaIntruciones.add(new Instrucion("LOAD_CONST " + ctx.CHAR(), linea++));
+        numeroArgumentos=1;
         return null;
     }
 
     @Override
     public Object visitPrimitiveExpressionPIZQPDE(PParser.PrimitiveExpressionPIZQPDEContext ctx) {
         visit(ctx.expression());
+        numeroArgumentos=1;
         return null;
     }
 
