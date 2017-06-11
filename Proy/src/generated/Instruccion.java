@@ -4,7 +4,7 @@ package generated;
 /**
  * Created by ADRIAN on 25/5/2017.
  */
-public class Instrucion {
+public class Instruccion {
     //Guarda el codigo de la instruccion
     String codigo;
     //Guarla le linea de codigo
@@ -16,13 +16,13 @@ public class Instrucion {
 
 
     //Constructor para las lineas de codigo
-    public Instrucion(String codigo, int linea) {
+    public Instruccion(String codigo, int linea) {
         this.codigo = codigo;
         this.linea = linea;
     }
 
     //Constructor para las etiquetas de las funciones
-    public Instrucion(String codigo, String parametros) {
+    public Instruccion(String codigo, String parametros) {
         this.codigo = codigo;
         this.parametros = parametros;
         this.esFuncion=true;
